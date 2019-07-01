@@ -1,0 +1,19 @@
+{
+    "name": "root/neuffer",
+    "description": "Neuffer calculator",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "nefedovs",
+            "email": "nefedovs89@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Nefedov89\\NeufferCalculator\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^7.2"
+    }
+}
