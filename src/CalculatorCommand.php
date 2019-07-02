@@ -36,19 +36,19 @@ class CalculatorCommand
     private $logFileHandler;
 
     /** @var array */
+    private static $calculatorOperationsMap = [
+        'plus'     => CalculatorOperationPlus::class,
+        'minus'    => CalculatorOperationMinus::class,
+        'multiply' => CalculatorOperationMultiply::class,
+        'division' => CalculatorOperationDivision::class,
+    ];
+
+    /** @var array */
     private $allowedActions = [
         'plus',
         'minus',
         'multiply',
         'division',
-    ];
-
-    /** @var array */
-    private $calculatorOperationsMap = [
-        'plus'     => CalculatorOperationPlus::class,
-        'minus'    => CalculatorOperationMinus::class,
-        'multiply' => CalculatorOperationMultiply::class,
-        'division' => CalculatorOperationDivision::class,
     ];
 
     /** @var string */
@@ -76,6 +76,16 @@ class CalculatorCommand
     public function __destruct()
     {
         $this->closeFileHandlers();
+    }
+
+    /**
+     * Get calculator operations map.
+     *
+     * @return array
+     */
+    public static function getCalculatorOperationsMap(): array
+    {
+        return self::$calculatorOperationsMap;
     }
 
     /**
@@ -264,7 +274,7 @@ class CalculatorCommand
      */
     private function setCalculatorOperationsPool(): void
     {
-        foreach ($this->calculatorOperationsMap as $action => $class) {
+        foreach (self::$calculatorOperationsMap as $action => $class) {
             if (class_exists($class)) {
                 CalculatorOperationsPool::setOperation($action, new $class());
             }
