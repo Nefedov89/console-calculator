@@ -4,9 +4,13 @@ declare(strict_types = 1);
 
 namespace Nefedov89\NeufferCalculator;
 
+use Nefedov89\NeufferCalculator\Operations\CalculatorOperationDivision;
+use Nefedov89\NeufferCalculator\Operations\CalculatorOperationMinus;
+use Nefedov89\NeufferCalculator\Operations\CalculatorOperationMultiply;
+use Nefedov89\NeufferCalculator\Operations\CalculatorOperationPlus;
 use const true, false, null;
 use function getopt, sprintf, in_array, file_exists, unlink, fopen, fclose,
-    is_readable;
+    is_readable, class_exists, fgetcsv, implode;
 
 /**
  * Class CalculatorCommand
@@ -39,6 +43,14 @@ class CalculatorCommand
         'division',
     ];
 
+    /** @var array */
+    private $calculatorOperationsMap = [
+        'plus'     => CalculatorOperationPlus::class,
+        'minus'    => CalculatorOperationMinus::class,
+        'multiply' => CalculatorOperationMultiply::class,
+        'division' => CalculatorOperationDivision::class,
+    ];
+
     /** @var string */
     private $action;
 
@@ -55,6 +67,7 @@ class CalculatorCommand
         $this->prepareFiles();
         $this->prepareFileHandlers();
         $this->setArguments();
+        $this->setCalculatorOperationsPool();
     }
 
     /**
@@ -75,6 +88,33 @@ class CalculatorCommand
     public function execute(): void
     {
         $this->validateArguments();
+
+        $operation = CalculatorOperationsPool::getOperation($this->action);
+
+        if ($operation) {
+            $startMessage = "Started {$this->action} operation";
+            $finishMessage = "Finished {$this->action} operation";
+
+            $this->logInfo($startMessage);
+            $this->successInfo($startMessage);
+
+            $handle = fopen($this->file,'r');
+
+            while (($line = fgetcsv($handle)) !== false) {
+                list($value1, $value2) = $operation->prepareValues($line[0]);
+
+                $result = $operation->countResult($value1, $value2);
+
+                if ($operation->isResultValid($result)) {
+                    $this->writeSuccessResult($value1, $value2, $result);
+                } else {
+                    $this->writeWrongResult($value1, $value2);
+                }
+            }
+
+            $this->logInfo($finishMessage);
+            $this->successInfo($finishMessage);
+        }
     }
 
     /**
@@ -82,7 +122,7 @@ class CalculatorCommand
      *
      * @return void
      */
-    private function prepareFiles() : void
+    private function prepareFiles(): void
     {
         $filesToPrepare = [
             self::LOG_FILE,
@@ -103,17 +143,17 @@ class CalculatorCommand
      *
      * @throws \Exception
      */
-    private function prepareFileHandlers() : void
+    private function prepareFileHandlers(): void
     {
         $this->logFileHandler = fopen(self::LOG_FILE, 'a+');
 
-        if($this->logFileHandler === false) {
+        if ($this->logFileHandler === false) {
             throw new \Exception('Log File cannot be open for writing');
         }
 
         $this->resultFileHandler = fopen(self::RESULT_FILE, 'a+');
 
-        if($this->resultFileHandler === false) {
+        if ($this->resultFileHandler === false) {
             throw new \Exception('Result File cannot be open for writing');
         }
     }
@@ -123,7 +163,7 @@ class CalculatorCommand
      *
      * @return void
      */
-    private function closeFileHandlers() : void
+    private function closeFileHandlers(): void
     {
         fclose($this->logFileHandler);
         fclose($this->resultFileHandler);
@@ -215,5 +255,68 @@ class CalculatorCommand
         if (!is_readable($this->file)) {
             throw new \Exception('We have not rights to read this file');
         }
+    }
+
+    /**
+     * Fill calculator operation pool with data.
+     *
+     * @return void
+     */
+    private function setCalculatorOperationsPool(): void
+    {
+        foreach ($this->calculatorOperationsMap as $action => $class) {
+            if (class_exists($class)) {
+                CalculatorOperationsPool::setOperation($action, new $class());
+            }
+        }
+    }
+
+    /**
+     * Write messages in log file.
+     *
+     * @param string $message
+     *
+     * @return void
+     */
+    private function logInfo(string $message): void
+    {
+        fwrite($this->logFileHandler, $message."\r\n");
+    }
+
+    /**
+     * Write message in result file.
+     *
+     * @param string $message
+     *
+     * @return void
+     */
+    private function successInfo(string $message): void
+    {
+        fwrite($this->resultFileHandler, $message."\r\n");
+    }
+
+    /**
+     * Prepare info and save it in result file.
+     *
+     * @param int $value1
+     * @param int $value2
+     * @param float $result
+     *
+     * @return void
+     */
+    private function writeSuccessResult(int $value1, int $value2, float $result): void
+    {
+        $this->successInfo(implode(';', [$value1, $value2, $result]));
+    }
+
+    /**
+     * Write in logs if numbers give wrong result.
+     *
+     * @param int $value1
+     * @param int $value2
+     */
+    private function writeWrongResult(int $value1, int $value2): void
+    {
+        $this->logInfo("Numbers {$value1} and {$value2} are wrong");
     }
 }
