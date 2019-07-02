@@ -79,16 +79,6 @@ class CalculatorCommand
     }
 
     /**
-     * Get calculator operations map.
-     *
-     * @return array
-     */
-    public static function getCalculatorOperationsMap(): array
-    {
-        return self::$calculatorOperationsMap;
-    }
-
-    /**
      * Execute main functionality.
      *
      * @return void
