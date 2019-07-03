@@ -67,6 +67,8 @@ class CalculationTest extends TestCase
                 }
             }
         }
+
+        $this->removeFiles();
     }
 
     /**

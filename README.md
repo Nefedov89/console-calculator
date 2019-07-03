@@ -6,4 +6,4 @@ Run `composer intall`
 
 ## Test
 
-Run `/vendor/bin/phpunit tests`
+Run `./vendor/bin/phpunit tests`
