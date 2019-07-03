@@ -34,6 +34,7 @@ class CalculationTest extends TestCase
             $this->assertFileExists(self::RESULT_FILE);
             $this->assertFileExists(self::LOG_FILE);
 
+            // Result data.
             $resultHandle = fopen(self::RESULT_FILE, 'r');
             $resultData = [];
 
@@ -43,20 +44,26 @@ class CalculationTest extends TestCase
 
             fclose($resultHandle);
 
+            // Log data.
             $logHandle = fopen(self::LOG_FILE, 'r');
             $logData = [];
 
-            while (($line = fgetcsv($logHandle)) !== false) {
+            while (($line = fgetcsv($logHandle, 1000, PHP_EOL)) !== false) {
                 $logData[] = $line[0];
             }
 
             fclose($logHandle);
 
+            // Make assertions.
             $assertResultsMap = $this->getAssertResultsMap($operation);
 
             if ($assertResultsMap) {
                 foreach ($assertResultsMap['result'] as $index => $line) {
                     $this->assertEquals($line, $resultData[$index]);
+                }
+
+                foreach ($assertResultsMap['log'] as $index => $line) {
+                    $this->assertEquals($line, $logData[$index]);
                 }
             }
         }
@@ -158,7 +165,7 @@ class CalculationTest extends TestCase
                     'Numbers 72 and -58 are wrong',
                     'Numbers -1 and 10 are wrong',
                     'Numbers 19 and -40 are wrong',
-                    'Numbers 5 and 0 are wrong',
+                    'Numbers 5 and 0 are wrong, is not allowed',
                     'Finished division operation',
                 ],
                 'result' => [

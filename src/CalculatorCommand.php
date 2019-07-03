@@ -317,6 +317,12 @@ class CalculatorCommand
      */
     private function writeWrongResult(int $value1, int $value2): void
     {
-        $this->logInfo("Numbers {$value1} and {$value2} are wrong");
+        $message = "Numbers {$value1} and {$value2} are wrong";
+
+        if ($this->action === 'division' && $value2 === 0) {
+            $message .= ', is not allowed';
+        }
+
+        $this->logInfo($message);
     }
 }
