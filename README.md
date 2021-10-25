@@ -1,4 +1,4 @@
-# Neuffer calculator
+# Console calculator
 
 ## Install
 
